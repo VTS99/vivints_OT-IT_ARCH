@@ -34,6 +34,7 @@
     --it-color: #38bdf8;
     --app-color: #34d399;
     --server-color: #06b6d4;
+    --vision-color: #a3e635;
 }
 
 html {
@@ -270,6 +271,20 @@ body {
     display: none;
     min-height: 100vh;
     animation: pageIn 0.8s ease forwards;
+    position: relative;
+}
+
+.arch-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    height: 100%;
+    background: var(--bg-deep);
+    border-right: 1px solid var(--border);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .arch-page.active {
@@ -395,6 +410,10 @@ body {
 
 .dot-server {
     background: var(--server-color);
+}
+
+.dot-vision {
+    background: var(--vision-color);
 }
 
 .back-link {
@@ -1155,6 +1174,10 @@ body {
 
     .site-footer.arch-footer {
         margin-left: 0;
+    }
+
+    .arch-page::before {
+        display: none;
     }
 
     .intro-name {

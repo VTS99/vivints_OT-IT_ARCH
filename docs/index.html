@@ -81,6 +81,13 @@
                 <a href="#server-stack" class="nav-link"><span class="dot dot-server"></span> Server Tech Stack</a>
             </div>
 
+            <div class="nav-group">
+                <div class="nav-group-label">Vision Inspection</div>
+                <a href="#vision-layers" class="nav-link"><span class="dot dot-vision"></span> Inspection Layers</a>
+                <a href="#vision-flow" class="nav-link"><span class="dot dot-vision"></span> Inspection Flow</a>
+                <a href="#vision-stack" class="nav-link"><span class="dot dot-vision"></span> Inspection Tech Stack</a>
+            </div>
+
             <a href="#" class="back-link" id="backToIntro">← Back to Intro</a>
         </nav>
 
@@ -895,6 +902,312 @@
                             <li>ELK Stack (Elasticsearch, Logstash, Kibana)</li>
                             <li>Sentry for error tracking and tracing</li>
                             <li>Jaeger for distributed tracing</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================ -->
+            <!--     VISION INSPECTION            -->
+            <!-- ================================ -->
+            <div class="section-separator anim-in">
+                <div class="sep-line"></div>
+                <div class="sep-title">Vision Inspection — Battery 4680</div>
+                <div class="sep-line"></div>
+            </div>
+
+            <!-- VISION LAYER 1 -->
+            <section class="arch-section anim-in" id="vision-layers">
+                <div class="section-label">Layer 1: Image Acquisition (CCD Capture)</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">CCD Line-Scan Camera Array</div>
+                        <div class="card-desc">High-resolution CCD cameras capturing 360° surface images of 4680
+                            cylindrical battery cells at production speed for defect detection</div>
+                        <div class="tags"><span class="tag">CCD Sensor</span><span class="tag">Line-Scan</span><span
+                                class="tag">12K Resolution</span><span class="tag">GigE Vision</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Lighting &amp; Illumination System</div>
+                        <div class="card-desc">Structured LED lighting modules with multi-angle illumination to reveal
+                            surface defects, scratches, dents, and weld seam anomalies on battery casing</div>
+                        <div class="tags"><span class="tag">LED Bar Lights</span><span class="tag">Coaxial</span><span
+                                class="tag">Dome Light</span><span class="tag">Strobe Control</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Image Acquisition Controller</div>
+                        <div class="card-desc">Real-time frame grabber and trigger synchronization unit coordinating
+                            camera exposure with cell movement on production conveyor</div>
+                        <div class="tags"><span class="tag">Frame Grabber</span><span class="tag">Encoder
+                                Trigger</span><span class="tag">PLC Sync</span><span class="tag">GPIO</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Calibration &amp; Alignment Module</div>
+                        <div class="card-desc">Automated geometric and photometric calibration ensuring measurement
+                            accuracy and consistent image quality across shifts</div>
+                        <div class="tags"><span class="tag">Auto-Calibration</span><span class="tag">Pixel/mm
+                                Mapping</span><span class="tag">Focus Control</span><span class="tag">Flatfield</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">GigE Vision | Camera Link</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- VISION LAYER 2 -->
+            <section class="arch-section anim-in">
+                <div class="section-label">Layer 2: Image Processing &amp; AI Analysis</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Pre-Processing Pipeline</div>
+                        <div class="card-desc">Image enhancement, noise reduction, ROI extraction, and normalization to
+                            prepare raw CCD frames for defect detection algorithms</div>
+                        <div class="tags"><span class="tag">OpenCV</span><span class="tag">Gaussian Filter</span><span
+                                class="tag">ROI Crop</span><span class="tag">Histogram EQ</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Deep Learning Defect Detection</div>
+                        <div class="card-desc">CNN-based models trained on 4680 battery defect datasets for automated
+                            classification of surface anomalies, weld defects, and dimensional deviations</div>
+                        <div class="tags"><span class="tag">YOLOv8</span><span class="tag">ResNet</span><span
+                                class="tag">Semantic Seg</span><span class="tag">TensorRT</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Measurement &amp; Metrology Engine</div>
+                        <div class="card-desc">Sub-pixel accurate dimensional measurement of cell diameter, height, tab
+                            alignment, and crimp seal geometry against tolerance specifications</div>
+                        <div class="tags"><span class="tag">Sub-pixel</span><span class="tag">Edge Detection</span><span
+                                class="tag">Gauging</span><span class="tag">GD&amp;T</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">GPU Inference Server</div>
+                        <div class="card-desc">NVIDIA GPU-accelerated inference for real-time processing of
+                            high-resolution images with <100ms latency per cell inspection</div>
+                                <div class="tags"><span class="tag">NVIDIA T4/A100</span><span
+                                        class="tag">CUDA</span><span class="tag">TensorRT</span><span
+                                        class="tag">Triton</span></div>
+                        </div>
+                    </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">REST API | gRPC</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- VISION LAYER 3 -->
+            <section class="arch-section anim-in">
+                <div class="section-label">Layer 3: Quality Decision &amp; Reporting</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Pass/Fail Classification Engine</div>
+                        <div class="card-desc">Rule-based and ML-driven quality gate combining defect severity scoring
+                            with tolerance thresholds for automated accept/reject decisions</div>
+                        <div class="tags"><span class="tag">Quality Gate</span><span class="tag">Severity
+                                Score</span><span class="tag">Auto-Reject</span><span class="tag">SPC</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Defect Image Archive</div>
+                        <div class="card-desc">Structured storage of all inspection images with defect annotations,
+                            traceability per cell serial number, and model retraining dataset curation</div>
+                        <div class="tags"><span class="tag">MinIO/S3</span><span class="tag">Traceability</span><span
+                                class="tag">Annotation DB</span><span class="tag">Dataset Mgmt</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Quality Dashboard &amp; Analytics</div>
+                        <div class="card-desc">Real-time visualisation of inspection KPIs — defect rate trends, Pareto
+                            charts, yield per batch, and alarm notification for quality excursions</div>
+                        <div class="tags"><span class="tag">Grafana</span><span class="tag">Pareto</span><span
+                                class="tag">SPC Charts</span><span class="tag">Yield Tracking</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">MES &amp; PLC Feedback Loop</div>
+                        <div class="card-desc">Direct integration sending pass/fail signals to PLC for cell
+                            sorting/ejection and reporting quality data upstream to MES for batch records</div>
+                        <div class="tags"><span class="tag">OPC UA</span><span class="tag">MES API</span><span
+                                class="tag">Digital I/O</span><span class="tag">Batch Record</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISION INSPECTION FLOW -->
+            <section class="flow-panel anim-in" id="vision-flow">
+                <h2>Vision Inspection Data Flow</h2>
+                <div class="flow-path">
+                    <h3 class="flow-path-title">CCD Image Capture → Quality Decision Pipeline (Battery 4680)</h3>
+                    <div class="flow-steps">
+                        <div class="flow-node start">
+                            <div class="node-num">1</div>
+                            <div class="node-body">
+                                <div class="t">Battery Cell on Conveyor</div>
+                                <div class="d">4680 cell enters inspection station</div>
+                                <div class="f">Line Speed: 200+ cells/min</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Encoder Trigger</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">2</div>
+                            <div class="node-body">
+                                <div class="t">CCD Image Capture</div>
+                                <div class="d">Multi-camera 360° surface scan</div>
+                                <div class="x">• Top view (tab/vent)<br>• Side view (casing)<br>• Bottom view (crimp
+                                    seal)</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">GigE Vision / CoaXPress</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">3</div>
+                            <div class="node-body">
+                                <div class="t">Pre-Processing</div>
+                                <div class="d">Image enhancement &amp; ROI extraction</div>
+                                <div class="x">• Noise reduction<br>• Contrast normalization<br>• Geometric correction
+                                </div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">GPU Memory Transfer</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">4</div>
+                            <div class="node-body">
+                                <div class="t">AI Defect Detection</div>
+                                <div class="d">CNN inference + dimensional measurement</div>
+                                <div class="x">• Surface defects<br>• Weld seam analysis<br>• Dimension check</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Classification Result</div>
+                        </div>
+                        <div class="split-grid">
+                            <div class="flow-node">
+                                <div class="node-num">5A</div>
+                                <div class="node-body">
+                                    <div class="t">PASS → Continue Line</div>
+                                    <div class="d">Cell proceeds to next station</div>
+                                    <div class="x">• Serial logged<br>• Image archived<br>• MES updated</div>
+                                </div>
+                            </div>
+                            <div class="flow-node">
+                                <div class="node-num">5B</div>
+                                <div class="node-body">
+                                    <div class="t">FAIL → Eject / Sort</div>
+                                    <div class="d">Defective cell removed</div>
+                                    <div class="x">• PLC reject signal<br>• Defect annotated<br>• Alarm triggered</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Data Persistence</div>
+                        </div>
+                        <div class="flow-node end">
+                            <div class="node-num">6</div>
+                            <div class="node-body">
+                                <div class="t">Quality Analytics &amp; Feedback</div>
+                                <div class="d">Dashboard, SPC, model retraining loop</div>
+                                <div class="x">• Defect trend analysis<br>• Yield KPIs<br>• Continuous improvement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defect Classification Flow -->
+                <div class="flow-path">
+                    <h3 class="flow-path-title">Defect Classification Categories (4680 Battery)</h3>
+                    <div class="flow-steps h-flow">
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Surface Defects</div>
+                                <div class="d">Scratches, Dents, Contamination</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Weld Defects</div>
+                                <div class="d">Spatter, Porosity, Misalignment</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Dimensional</div>
+                                <div class="d">Diameter, Height, Ovality</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Seal Integrity</div>
+                                <div class="d">Crimp quality, Vent shape</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Label / Marking</div>
+                                <div class="d">OCR, QR, Laser etch verify</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISION TECH STACK -->
+            <section class="info-panel anim-in" id="vision-stack">
+                <h2>Vision Inspection Technology Stack</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Camera &amp; Optics</h3>
+                        <ul>
+                            <li>Basler / FLIR CCD line-scan cameras (12K pixels)</li>
+                            <li>Telecentric lenses for distortion-free imaging</li>
+                            <li>Multi-wavelength LED illumination (White, IR, UV)</li>
+                            <li>GigE Vision / CoaXPress interfaces</li>
+                            <li>Motorized focus and aperture control</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Image Processing &amp; AI</h3>
+                        <ul>
+                            <li>OpenCV and HALCON for classical vision algorithms</li>
+                            <li>PyTorch / TensorFlow for deep learning models</li>
+                            <li>YOLOv8 for real-time defect detection</li>
+                            <li>NVIDIA TensorRT for optimised GPU inference</li>
+                            <li>Label Studio for defect annotation workflows</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Compute &amp; Infrastructure</h3>
+                        <ul>
+                            <li>NVIDIA Jetson AGX / GPU workstation at edge</li>
+                            <li>Matrox Rapixo frame grabbers</li>
+                            <li>Docker containers for vision microservices</li>
+                            <li>NVIDIA Triton Inference Server</li>
+                            <li>High-speed NVMe storage for image buffering</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Integration &amp; Traceability</h3>
+                        <ul>
+                            <li>OPC UA for PLC reject/accept signal feedback</li>
+                            <li>REST API for MES quality record submission</li>
+                            <li>Unique cell serial number (barcode / laser etch)</li>
+                            <li>Image archival with MinIO/S3 (7+ year retention)</li>
+                            <li>MLOps pipeline for model retraining (MLflow)</li>
                         </ul>
                     </div>
                 </div>
