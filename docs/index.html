@@ -1,1660 +1,761 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OT/IT Architecture - PLC to MES with Predictive Analytics</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-cyan: #00f0ff;
-            --primary-green: #00ff9f;
-            --accent-purple: #a855f7;
-            --accent-pink: #ec4899;
-            --dark-bg: #050505;
-            --dark-surface: #0a0a0f;
-            --dark-elevated: #13131a;
-            --glass-bg: rgba(15, 15, 25, 0.7);
-            --glass-border: rgba(0, 240, 255, 0.15);
-            --shadow-glow: 0 0 40px rgba(0, 240, 255, 0.15);
-            --shadow-glow-strong: 0 0 60px rgba(0, 240, 255, 0.3);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--dark-bg);
-            color: #e8e8e8;
-            padding: 60px 20px;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 40% 60%, rgba(0, 255, 159, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                repeating-linear-gradient(0deg, rgba(0, 240, 255, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 240, 255, 0.03) 3px),
-                repeating-linear-gradient(90deg, rgba(0, 240, 255, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 240, 255, 0.03) 3px);
-            background-size: 60px 60px;
-            opacity: 0.4;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 3.5em;
-            font-weight: 800;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, var(--primary-cyan) 0%, var(--primary-green) 50%, var(--accent-purple) 100%);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 8s ease infinite;
-            letter-spacing: -1px;
-            text-shadow: 0 0 80px rgba(0, 240, 255, 0.3);
-            position: relative;
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--primary-cyan), transparent);
-            box-shadow: 0 0 20px var(--primary-cyan);
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #9ca3af;
-            margin-bottom: 60px;
-            font-size: 1.15em;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-        }
-
-        .architecture-diagram {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 50px;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            box-shadow: 
-                var(--shadow-glow),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-                0 20px 60px rgba(0, 0, 0, 0.4);
-            margin-bottom: 50px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .architecture-diagram::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary-cyan), var(--primary-green), transparent);
-        }
-
-        .architecture-diagram::after {
-            content: '';
-            position: absolute;
-            inset: -100%;
-            background: conic-gradient(from 180deg at 50% 50%, 
-                rgba(0, 240, 255, 0) 0deg, 
-                rgba(0, 240, 255, 0.1) 180deg, 
-                rgba(0, 240, 255, 0) 360deg);
-            animation: rotate 20s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-
-        .layer {
-            margin-bottom: 50px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .layer-title {
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-bottom: 30px;
-            padding: 18px 30px;
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 255, 159, 0.15));
-            border-left: 4px solid var(--primary-cyan);
-            border-radius: 12px;
-            display: inline-block;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
-            letter-spacing: 0.3px;
-        }
-
-        .components-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-top: 25px;
-        }
-
-        .component {
-            background: linear-gradient(135deg, rgba(19, 19, 26, 0.95), rgba(10, 10, 15, 0.95));
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            border-radius: 16px;
-            padding: 28px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-
-        .component::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 16px;
-            padding: 1px;
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .component::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .component:hover::before {
-            opacity: 1;
-        }
-
-        .component:hover::after {
-            left: 100%;
-        }
-
-        .component:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 
-                0 20px 60px rgba(0, 240, 255, 0.25),
-                0 0 0 1px rgba(0, 240, 255, 0.3),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-            border-color: var(--primary-cyan);
-        }
-
-        .component-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 18px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .component-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            margin-right: 16px;
-            box-shadow: 
-                0 8px 24px rgba(0, 240, 255, 0.3),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-            flex-shrink: 0;
-            position: relative;
-        }
-
-        .component-icon::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
-            z-index: -1;
-            opacity: 0.5;
-            filter: blur(8px);
-        }
-
-        .component-title {
-            font-size: 1.25em;
-            font-weight: 700;
-            color: var(--primary-cyan);
-            letter-spacing: 0.2px;
-        }
-
-        .component-description {
-            color: #b8b8b8;
-            line-height: 1.7;
-            margin-bottom: 16px;
-            font-size: 0.95em;
-            position: relative;
-            z-index: 1;
-        }
-
-        .component-tech {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .tech-badge {
-            background: rgba(0, 240, 255, 0.1);
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            color: var(--primary-cyan);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .tech-badge:hover {
-            background: rgba(0, 240, 255, 0.2);
-            border-color: var(--primary-cyan);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 240, 255, 0.3);
-        }
-
-        .data-flow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 40px 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        .flow-arrow {
-            font-size: 3.5em;
-            background: linear-gradient(180deg, var(--primary-cyan), var(--primary-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: arrowPulse 2s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6));
-        }
-
-        @keyframes arrowPulse {
-            0%, 100% { 
-                opacity: 0.6; 
-                transform: scale(1) translateY(0); 
-            }
-            50% { 
-                opacity: 1; 
-                transform: scale(1.15) translateY(5px); 
-            }
-        }
-
-        .protocol-box {
-            background: linear-gradient(135deg, rgba(0, 255, 159, 0.15), rgba(0, 240, 255, 0.15));
-            border: 1px solid var(--primary-green);
-            padding: 12px 28px;
-            border-radius: 30px;
-            margin: 0 25px;
-            font-weight: 600;
-            color: var(--primary-green);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95em;
-            letter-spacing: 0.5px;
-            backdrop-filter: blur(10px);
-            box-shadow: 
-                0 4px 20px rgba(0, 255, 159, 0.2),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .protocol-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .info-panel {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 45px;
-            margin-top: 50px;
-            backdrop-filter: blur(20px) saturate(180%);
-            box-shadow: 
-                var(--shadow-glow),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .info-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary-green), transparent);
-        }
-
-        .info-panel h2 {
-            color: var(--primary-cyan);
-            margin-bottom: 35px;
-            font-size: 1.8em;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .info-panel h2::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-green));
-            border-radius: 2px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 28px;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, rgba(19, 19, 26, 0.6), rgba(10, 10, 15, 0.6));
-            padding: 28px;
-            border-radius: 16px;
-            border: 1px solid rgba(0, 255, 159, 0.2);
-            border-left: 4px solid var(--primary-green);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .info-card:hover {
-            transform: translateX(8px);
-            border-left-color: var(--primary-cyan);
-            border-color: rgba(0, 240, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 240, 255, 0.2);
-        }
-
-        .info-card h3 {
-            color: var(--primary-green);
-            margin-bottom: 18px;
-            font-size: 1.25em;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-        }
-
-        .info-card ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .info-card li {
-            padding: 10px 0;
-            color: #b8b8b8;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.2s ease;
-            font-size: 0.95em;
-            line-height: 1.6;
-        }
-
-        .info-card li:last-child {
-            border-bottom: none;
-        }
-
-        .info-card li:hover {
-            color: #e8e8e8;
-            padding-left: 8px;
-        }
-
-        .info-card li::before {
-            content: "→ ";
-            color: var(--primary-cyan);
-            font-weight: 600;
-            margin-right: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .info-card li:hover::before {
-            margin-right: 14px;
-        }
-
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 40px;
-            padding: 28px;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(10, 10, 15, 0.4));
-            border-radius: 20px;
-            border: 1px solid rgba(0, 240, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 20px;
-            background: rgba(19, 19, 26, 0.6);
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .legend-item:hover {
-            transform: translateY(-2px);
-            border-color: rgba(0, 240, 255, 0.4);
-            box-shadow: 0 4px 16px rgba(0, 240, 255, 0.2);
-        }
-
-        .legend-color {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .legend-color::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 8px;
-            background: inherit;
-            z-index: -1;
-            opacity: 0.3;
-            filter: blur(8px);
-        }
-
-        .ot-color { background: linear-gradient(135deg, #ff6b6b, #ee5a6f); }
-        .edge-color { background: linear-gradient(135deg, #ffd93d, #ffb800); }
-        .it-color { background: linear-gradient(135deg, #00d4ff, #0099ff); }
-        .app-color { background: linear-gradient(135deg, #00ff9f, #00cc7f); }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8em; }
-            .components-grid { grid-template-columns: 1fr; }
-            .info-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <title>Vivin T.S. — OT/IT Architecture Plan</title>
+    <meta name="description"
+        content="OT/IT Architecture - PLC to MES Integration with Predictive Analytics by Vivin T.S.">
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>OT/IT Architecture</h1>
-        <div class="subtitle">PLC to MES Integration with Predictive Analytics</div>
 
-        <div class="architecture-diagram">
-            <!-- LAYER 1: OT LEVEL (SHOP FLOOR) -->
-            <div class="layer">
-                <div class="layer-title">🏭 Layer 1: OT Level (Shop Floor)</div>
-                <div class="components-grid">
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">⚙️</div>
-                            <div class="component-title">PLCs & Controllers</div>
-                        </div>
-                        <div class="component-description">
-                            Industrial controllers managing production machines, sensors, and actuators with real-time control logic
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Siemens S7</span>
-                            <span class="tech-badge">Allen-Bradley</span>
-                            <span class="tech-badge">Schneider</span>
-                            <span class="tech-badge">Mitsubishi</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">📊</div>
-                            <div class="component-title">SCADA Systems</div>
-                        </div>
-                        <div class="component-description">
-                            Supervisory control and data acquisition for real-time monitoring and local HMI interfaces
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">WinCC</span>
-                            <span class="tech-badge">FactoryTalk</span>
-                            <span class="tech-badge">Ignition</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">📁</div>
-                            <div class="component-title">Local Data Storage</div>
-                        </div>
-                        <div class="component-description">
-                            PLC-generated CSV files stored locally on machines for batch processing and historical records
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">CSV Files</span>
-                            <span class="tech-badge">Local FS</span>
-                            <span class="tech-badge">Network Share</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="data-flow">
-                <div class="flow-arrow">↓</div>
-                <div class="protocol-box">OPC UA | SFTP</div>
-                <div class="flow-arrow">↓</div>
-            </div>
-
-            <!-- LAYER 2: EDGE COMPUTING LAYER -->
-            <div class="layer">
-                <div class="layer-title">🔄 Layer 2: Edge Computing & Data Collection</div>
-                <div class="components-grid">
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🔌</div>
-                            <div class="component-title">Kepware OPC UA Server</div>
-                        </div>
-                        <div class="component-description">
-                            Industrial connectivity platform aggregating tag-based real-time data from multiple PLCs via OPC UA protocol
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">OPC UA</span>
-                            <span class="tech-badge">Tag Manager</span>
-                            <span class="tech-badge">Real-time</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🔄</div>
-                            <div class="component-title">SyncBridge (SFTP/NFS)</div>
-                        </div>
-                        <div class="component-description">
-                            Your industrial-grade file synchronization backbone for collecting CSV files from machines with multi-instance architecture
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">SFTP</span>
-                            <span class="tech-badge">NFS</span>
-                            <span class="tech-badge">Python</span>
-                            <span class="tech-badge">Multi-instance</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🗄️</div>
-                            <div class="component-title">Edge Data Buffer</div>
-                        </div>
-                        <div class="component-description">
-                            Temporary storage and pre-processing layer ensuring data integrity and handling network disruptions
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Redis</span>
-                            <span class="tech-badge">TimescaleDB</span>
-                            <span class="tech-badge">Message Queue</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="data-flow">
-                <div class="flow-arrow">↓</div>
-                <div class="protocol-box">HTTP/MQTT | REST API</div>
-                <div class="flow-arrow">↓</div>
-            </div>
-
-            <!-- LAYER 3: IT LAYER (DATA PLATFORM) -->
-            <div class="layer">
-                <div class="layer-title">☁️ Layer 3: IT Layer (Data Platform & Storage)</div>
-                <div class="components-grid">
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🐍</div>
-                            <div class="component-title">Python Data Ingestion Service</div>
-                        </div>
-                        <div class="component-description">
-                            ETL pipeline for data validation, transformation, and standardization of both tag-based and file-based data
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Pandas</span>
-                            <span class="tech-badge">Apache Airflow</span>
-                            <span class="tech-badge">FastAPI</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">💾</div>
-                            <div class="component-title">Time-Series Database</div>
-                        </div>
-                        <div class="component-description">
-                            High-performance storage for real-time tag data with efficient querying and aggregation capabilities
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">InfluxDB</span>
-                            <span class="tech-badge">TimescaleDB</span>
-                            <span class="tech-badge">SQL</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">📦</div>
-                            <div class="component-title">Data Lake</div>
-                        </div>
-                        <div class="component-description">
-                            Centralized repository for raw CSV files, logs, and historical data for long-term storage and analytics
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">MinIO</span>
-                            <span class="tech-badge">S3</span>
-                            <span class="tech-badge">Parquet</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🔍</div>
-                            <div class="component-title">Data Quality & Monitoring</div>
-                        </div>
-                        <div class="component-description">
-                            Automated data validation, anomaly detection, and quality scoring for incoming production data
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Great Expectations</span>
-                            <span class="tech-badge">Prometheus</span>
-                            <span class="tech-badge">Grafana</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="data-flow">
-                <div class="flow-arrow">↓</div>
-                <div class="protocol-box">REST API | WebSocket</div>
-                <div class="flow-arrow">↓</div>
-            </div>
-
-            <!-- LAYER 4: APPLICATION LAYER -->
-            <div class="layer">
-                <div class="layer-title">🤖 Layer 4: Application & Analytics Layer</div>
-                <div class="components-grid">
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🔮</div>
-                            <div class="component-title">Predictive Analytics Engine</div>
-                        </div>
-                        <div class="component-description">
-                            ML models for equipment failure prediction, quality forecasting, and anomaly detection using historical and real-time data
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Scikit-learn</span>
-                            <span class="tech-badge">TensorFlow</span>
-                            <span class="tech-badge">Prophet</span>
-                            <span class="tech-badge">XGBoost</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">📈</div>
-                            <div class="component-title">Real-time Dashboard</div>
-                        </div>
-                        <div class="component-description">
-                            Web-based visualization platform for KPIs, OEE, equipment status, and predictive maintenance alerts
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">React</span>
-                            <span class="tech-badge">Plotly</span>
-                            <span class="tech-badge">WebSocket</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">🏭</div>
-                            <div class="component-title">MES Integration</div>
-                        </div>
-                        <div class="component-description">
-                            Manufacturing Execution System integration for production planning, scheduling, and quality management
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">SAP MES</span>
-                            <span class="tech-badge">REST API</span>
-                            <span class="tech-badge">ISA-95</span>
-                        </div>
-                    </div>
-
-                    <div class="component">
-                        <div class="component-header">
-                            <div class="component-icon">📊</div>
-                            <div class="component-title">BI & Reporting</div>
-                        </div>
-                        <div class="component-description">
-                            Business intelligence tools for historical analysis, trend identification, and executive reporting
-                        </div>
-                        <div class="component-tech">
-                            <span class="tech-badge">Power BI</span>
-                            <span class="tech-badge">Tableau</span>
-                            <span class="tech-badge">Python Reports</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- ================================ -->
+    <!--     INTRO / LANDING PAGE         -->
+    <!-- ================================ -->
+    <section class="intro-page" id="intro">
+        <canvas class="particles" id="particleCanvas"></canvas>
+        <div class="intro-content">
+            <h1 class="intro-name">VIVIN T.S</h1>
+            <p class="intro-title">Assistant Manager – Automation &nbsp;|&nbsp; Digital Manufacturing &nbsp;|&nbsp; OT
+                Software &nbsp;|&nbsp; IIoT</p>
+            <a href="#" class="cta-btn" id="viewArchBtn">
+                View IT/OT Architecture Plan <span class="arrow">→</span>
+            </a>
+        </div>
+        <div class="scroll-hint"><span>scroll</span>
+            <div class="line"></div>
         </div>
 
-        <!-- DETAILED INFORMATION PANELS -->
-        <div class="info-panel">
-            <h2>Data Flow Details</h2>
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3>Tag-Based Data Collection (OPC UA)</h3>
-                    <ul>
-                        <li>Real-time polling of PLC tags via Kepware</li>
-                        <li>High-frequency data (1-10 Hz) for critical parameters</li>
-                        <li>Process variables, setpoints, alarms, status bits</li>
-                        <li>Low-latency streaming to time-series database</li>
-                        <li>Supports multiple OPC UA namespaces</li>
-                    </ul>
-                </div>
+        <!-- Footer on intro page -->
+        <footer class="site-footer"
+            style="position:absolute;bottom:0;left:0;right:0;border-top:none;background:transparent;">
+            <div class="footer-credit">Created and Developed by Vivin T.S.</div>
+            <div class="footer-links">
+                <a href="tel:+917338937394">+91 7338937394</a>
+                <a href="mailto:vivints.17@gmail.com">vivints.17@gmail.com</a>
+                <a href="https://linkedin.com/in/vivin-t-s-21aa4210a" target="_blank">LinkedIn</a>
+            </div>
+        </footer>
+    </section>
 
-                <div class="info-card">
-                    <h3>File-Based Data Collection (SFTP/NFS)</h3>
-                    <ul>
-                        <li>Batch processing of machine-generated CSV files</li>
-                        <li>Production logs, quality reports, recipe data</li>
-                        <li>SyncBridge handles multi-machine synchronization</li>
-                        <li>Automatic file validation and error handling</li>
-                        <li>Supports large file transfers with resume capability</li>
-                    </ul>
-                </div>
+    <!-- ================================ -->
+    <!--     ARCHITECTURE PAGE            -->
+    <!-- ================================ -->
+    <div class="arch-page" id="archPage">
 
-                <div class="info-card">
-                    <h3>Python Application Functions</h3>
-                    <ul>
-                        <li>Data preprocessing and feature engineering</li>
-                        <li>Machine learning model training and inference</li>
-                        <li>Predictive maintenance algorithm execution</li>
-                        <li>REST API for external system integration</li>
-                        <li>Scheduled reporting and alerting</li>
-                    </ul>
-                </div>
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
 
-                <div class="info-card">
-                    <h3>Predictive Analytics Capabilities</h3>
-                    <ul>
-                        <li>Equipment failure prediction (RUL estimation)</li>
-                        <li>Quality deviation forecasting</li>
-                        <li>Process optimization recommendations</li>
-                        <li>Anomaly detection and root cause analysis</li>
-                        <li>Energy consumption optimization</li>
-                    </ul>
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h2>OT/IT Architecture</h2>
+                <div class="sub">PLC to MES · Predictive Analytics</div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Architecture Layers</div>
+                <a href="#layer1" class="nav-link"><span class="dot dot-ot"></span> OT Level (Shop Floor)</a>
+                <a href="#layer2" class="nav-link"><span class="dot dot-edge"></span> Edge Computing</a>
+                <a href="#layer3" class="nav-link"><span class="dot dot-it"></span> IT Data Platform</a>
+                <a href="#layer4" class="nav-link"><span class="dot dot-app"></span> Application &amp; Analytics</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Details</div>
+                <a href="#data-flow-details" class="nav-link"><span class="dot dot-detail"></span> Data Flow Details</a>
+                <a href="#tech-stack" class="nav-link"><span class="dot dot-detail"></span> Technology Stack</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Diagrams</div>
+                <a href="#flow-diagram" class="nav-link"><span class="dot dot-diagram"></span> Flow Diagram</a>
+                <a href="#integration-matrix" class="nav-link"><span class="dot dot-diagram"></span> Integration
+                    Matrix</a>
+            </div>
+
+            <a href="#" class="back-link" id="backToIntro">← Back to Intro</a>
+        </nav>
+
+        <main class="main">
+            <div class="page-head">
+                <h1>OT/IT Architecture</h1>
+                <p>PLC to MES Integration with Predictive Analytics</p>
+            </div>
+
+            <!-- LAYER 1 -->
+            <section class="arch-section anim-in" id="layer1">
+                <div class="section-label">Layer 1: OT Level (Shop Floor)</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">PLCs &amp; Controllers</div>
+                        <div class="card-desc">Industrial controllers managing production machines, sensors, and
+                            actuators with real-time control logic</div>
+                        <div class="tags"><span class="tag">Siemens S7</span><span class="tag">Allen-Bradley</span><span
+                                class="tag">Schneider</span><span class="tag">Mitsubishi</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">SCADA Systems</div>
+                        <div class="card-desc">Supervisory control and data acquisition for real-time monitoring and
+                            local HMI interfaces</div>
+                        <div class="tags"><span class="tag">WinCC</span><span class="tag">FactoryTalk</span><span
+                                class="tag">Ignition</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Local Data Storage</div>
+                        <div class="card-desc">PLC-generated CSV files stored locally on machines for batch processing
+                            and historical records</div>
+                        <div class="tags"><span class="tag">CSV Files</span><span class="tag">Local FS</span><span
+                                class="tag">Network Share</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">OPC UA | SFTP</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- LAYER 2 -->
+            <section class="arch-section anim-in" id="layer2">
+                <div class="section-label">Layer 2: Edge Computing &amp; Data Collection</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Kepware OPC UA Server</div>
+                        <div class="card-desc">Industrial connectivity platform aggregating tag-based real-time data
+                            from multiple PLCs via OPC UA protocol</div>
+                        <div class="tags"><span class="tag">OPC UA</span><span class="tag">Tag Manager</span><span
+                                class="tag">Real-time</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">SyncBridge (SFTP/NFS)</div>
+                        <div class="card-desc">Industrial-grade file synchronization backbone for collecting CSV files
+                            from machines with multi-instance architecture</div>
+                        <div class="tags"><span class="tag">SFTP</span><span class="tag">NFS</span><span
+                                class="tag">Python</span><span class="tag">Multi-instance</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Edge Data Buffer</div>
+                        <div class="card-desc">Temporary storage and pre-processing layer ensuring data integrity and
+                            handling network disruptions</div>
+                        <div class="tags"><span class="tag">Redis</span><span class="tag">TimescaleDB</span><span
+                                class="tag">Message Queue</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">HTTP/MQTT | REST API</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- LAYER 3 -->
+            <section class="arch-section anim-in" id="layer3">
+                <div class="section-label">Layer 3: IT Layer (Data Platform &amp; Storage)</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Python Data Ingestion Service</div>
+                        <div class="card-desc">ETL pipeline for data validation, transformation, and standardization of
+                            both tag-based and file-based data</div>
+                        <div class="tags"><span class="tag">Pandas</span><span class="tag">Apache Airflow</span><span
+                                class="tag">FastAPI</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Time-Series Database</div>
+                        <div class="card-desc">High-performance storage for real-time tag data with efficient querying
+                            and aggregation capabilities</div>
+                        <div class="tags"><span class="tag">InfluxDB</span><span class="tag">TimescaleDB</span><span
+                                class="tag">SQL</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Data Lake</div>
+                        <div class="card-desc">Centralized repository for raw CSV files, logs, and historical data for
+                            long-term storage and analytics</div>
+                        <div class="tags"><span class="tag">MinIO</span><span class="tag">S3</span><span
+                                class="tag">Parquet</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Data Quality &amp; Monitoring</div>
+                        <div class="card-desc">Automated data validation, anomaly detection, and quality scoring for
+                            incoming production data</div>
+                        <div class="tags"><span class="tag">Great Expectations</span><span
+                                class="tag">Prometheus</span><span class="tag">Grafana</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">REST API | WebSocket</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- LAYER 4 -->
+            <section class="arch-section anim-in" id="layer4">
+                <div class="section-label">Layer 4: Application &amp; Analytics Layer</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Predictive Analytics Engine</div>
+                        <div class="card-desc">ML models for equipment failure prediction, quality forecasting, and
+                            anomaly detection using historical and real-time data</div>
+                        <div class="tags"><span class="tag">Scikit-learn</span><span class="tag">TensorFlow</span><span
+                                class="tag">Prophet</span><span class="tag">XGBoost</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Real-time Dashboard</div>
+                        <div class="card-desc">Web-based visualization platform for KPIs, OEE, equipment status, and
+                            predictive maintenance alerts</div>
+                        <div class="tags"><span class="tag">React</span><span class="tag">Plotly</span><span
+                                class="tag">WebSocket</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">MES Integration</div>
+                        <div class="card-desc">Manufacturing Execution System integration for production planning,
+                            scheduling, and quality management</div>
+                        <div class="tags"><span class="tag">SAP MES</span><span class="tag">REST API</span><span
+                                class="tag">ISA-95</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">BI &amp; Reporting</div>
+                        <div class="card-desc">Business intelligence tools for historical analysis, trend
+                            identification, and executive reporting</div>
+                        <div class="tags"><span class="tag">Power BI</span><span class="tag">Tableau</span><span
+                                class="tag">Python Reports</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Legend -->
+            <div class="legend anim-in">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--ot-color)"></div>OT Level
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--edge-color)"></div>Edge Computing
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--it-color)"></div>IT Platform
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--app-color)"></div>Application
                 </div>
             </div>
-        </div>
 
-        <div class="info-panel">
-            <h2>Technology Stack Recommendations</h2>
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3>Edge Layer Technologies</h3>
-                    <ul>
-                        <li>Kepware KEPServerEX for OPC UA connectivity</li>
-                        <li>Python 3.11+ for SyncBridge and data agents</li>
-                        <li>Redis for message queuing and caching</li>
-                        <li>Docker for containerized edge deployments</li>
-                        <li>MQTT broker (Mosquitto) for lightweight messaging</li>
-                    </ul>
+            <!-- DATA FLOW DETAILS -->
+            <section class="info-panel anim-in" id="data-flow-details">
+                <h2>Data Flow Details</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Tag-Based Data Collection (OPC UA)</h3>
+                        <ul>
+                            <li>Real-time polling of PLC tags via Kepware</li>
+                            <li>High-frequency data (1-10 Hz) for critical parameters</li>
+                            <li>Process variables, setpoints, alarms, status bits</li>
+                            <li>Low-latency streaming to time-series database</li>
+                            <li>Supports multiple OPC UA namespaces</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>File-Based Data Collection (SFTP/NFS)</h3>
+                        <ul>
+                            <li>Batch processing of machine-generated CSV files</li>
+                            <li>Production logs, quality reports, recipe data</li>
+                            <li>SyncBridge handles multi-machine synchronization</li>
+                            <li>Automatic file validation and error handling</li>
+                            <li>Supports large file transfers with resume capability</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Python Application Functions</h3>
+                        <ul>
+                            <li>Data preprocessing and feature engineering</li>
+                            <li>Machine learning model training and inference</li>
+                            <li>Predictive maintenance algorithm execution</li>
+                            <li>REST API for external system integration</li>
+                            <li>Scheduled reporting and alerting</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Predictive Analytics Capabilities</h3>
+                        <ul>
+                            <li>Equipment failure prediction (RUL estimation)</li>
+                            <li>Quality deviation forecasting</li>
+                            <li>Process optimization recommendations</li>
+                            <li>Anomaly detection and root cause analysis</li>
+                            <li>Energy consumption optimization</li>
+                        </ul>
+                    </div>
                 </div>
+            </section>
 
-                <div class="info-card">
-                    <h3>Data Platform Stack</h3>
-                    <ul>
-                        <li>TimescaleDB/InfluxDB for time-series data</li>
-                        <li>PostgreSQL for relational metadata</li>
-                        <li>MinIO/S3 for object storage (data lake)</li>
-                        <li>Apache Airflow for workflow orchestration</li>
-                        <li>FastAPI for Python microservices</li>
-                    </ul>
+            <!-- TECH STACK -->
+            <section class="info-panel anim-in" id="tech-stack">
+                <h2>Technology Stack Recommendations</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Edge Layer Technologies</h3>
+                        <ul>
+                            <li>Kepware KEPServerEX for OPC UA connectivity</li>
+                            <li>Python 3.11+ for SyncBridge and data agents</li>
+                            <li>Redis for message queuing and caching</li>
+                            <li>Docker for containerized edge deployments</li>
+                            <li>MQTT broker (Mosquitto) for lightweight messaging</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Data Platform Stack</h3>
+                        <ul>
+                            <li>TimescaleDB/InfluxDB for time-series data</li>
+                            <li>PostgreSQL for relational metadata</li>
+                            <li>MinIO/S3 for object storage (data lake)</li>
+                            <li>Apache Airflow for workflow orchestration</li>
+                            <li>FastAPI for Python microservices</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>ML/Analytics Stack</h3>
+                        <ul>
+                            <li>Pandas, NumPy for data manipulation</li>
+                            <li>Scikit-learn for traditional ML algorithms</li>
+                            <li>Prophet/ARIMA for time-series forecasting</li>
+                            <li>MLflow for model versioning and tracking</li>
+                            <li>Jupyter notebooks for exploratory analysis</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Security &amp; Networking</h3>
+                        <ul>
+                            <li>Industrial DMZ with firewall segmentation</li>
+                            <li>VPN/Zero Trust for remote access</li>
+                            <li>TLS encryption for all data in transit</li>
+                            <li>RBAC (Role-Based Access Control)</li>
+                            <li>Audit logging and SIEM integration</li>
+                        </ul>
+                    </div>
                 </div>
+            </section>
 
-                <div class="info-card">
-                    <h3>ML/Analytics Stack</h3>
-                    <ul>
-                        <li>Pandas, NumPy for data manipulation</li>
-                        <li>Scikit-learn for traditional ML algorithms</li>
-                        <li>Prophet/ARIMA for time-series forecasting</li>
-                        <li>MLflow for model versioning and tracking</li>
-                        <li>Jupyter notebooks for exploratory analysis</li>
-                    </ul>
-                </div>
+            <!-- FLOW DIAGRAM -->
+            <section class="flow-panel anim-in" id="flow-diagram">
+                <h2>Complete Data Flow Diagram</h2>
 
-                <div class="info-card">
-                    <h3>Security & Networking</h3>
-                    <ul>
-                        <li>Industrial DMZ with firewall segmentation</li>
-                        <li>VPN/Zero Trust for remote access</li>
-                        <li>TLS encryption for all data in transit</li>
-                        <li>RBAC (Role-Based Access Control)</li>
-                        <li>Audit logging and SIEM integration</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color ot-color"></div>
-                <span>OT Level (Shop Floor)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color edge-color"></div>
-                <span>Edge Computing Layer</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color it-color"></div>
-                <span>IT Platform Layer</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color app-color"></div>
-                <span>Application Layer</span>
-            </div>
-        </div>
-
-        <!-- COMPLETE FLOW DIAGRAM SECTION -->
-        <div class="architecture-diagram" style="margin-top: 60px;">
-            <h2 style="text-align: center; color: #00d4ff; margin-bottom: 40px; font-size: 2em;">Complete Data Flow Diagram</h2>
-            
-            <div class="flow-container">
-                <!-- OPC UA Flow Path -->
+                <!-- OPC UA Flow -->
                 <div class="flow-path">
-                    <h3 class="flow-path-title">📡 Real-time Tag Data Flow (OPC UA)</h3>
+                    <h3 class="flow-path-title">Real-time Tag Data Flow (OPC UA)</h3>
                     <div class="flow-steps">
-                        <div class="flow-node start-node">
-                            <div class="node-number">1</div>
-                            <div class="node-content">
-                                <div class="node-title">PLC Tags</div>
-                                <div class="node-desc">Temperature, Pressure, Speed, Status</div>
-                                <div class="node-freq">Polling: 1-10 Hz</div>
+                        <div class="flow-node start">
+                            <div class="node-num">1</div>
+                            <div class="node-body">
+                                <div class="t">PLC Tags</div>
+                                <div class="d">Temperature, Pressure, Speed, Status</div>
+                                <div class="f">Polling: 1-10 Hz</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">OPC UA Protocol</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">OPC UA Protocol</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">2</div>
-                            <div class="node-content">
-                                <div class="node-title">Kepware OPC UA Server</div>
-                                <div class="node-desc">Tag aggregation & protocol conversion</div>
-                                <div class="node-tech">• Multi-PLC support<br>• Tag grouping<br>• Dead-band filtering</div>
+                            <div class="node-num">2</div>
+                            <div class="node-body">
+                                <div class="t">Kepware OPC UA Server</div>
+                                <div class="d">Tag aggregation &amp; protocol conversion</div>
+                                <div class="x">• Multi-PLC support<br>• Tag grouping<br>• Dead-band filtering</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">OPC UA Client / MQTT</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">OPC UA Client / MQTT</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">3</div>
-                            <div class="node-content">
-                                <div class="node-title">Python Data Agent</div>
-                                <div class="node-desc">Data validation & transformation</div>
-                                <div class="node-tech">• Schema validation<br>• Unit conversion<br>• Quality checks</div>
+                            <div class="node-num">3</div>
+                            <div class="node-body">
+                                <div class="t">Python Data Agent</div>
+                                <div class="d">Data validation &amp; transformation</div>
+                                <div class="x">• Schema validation<br>• Unit conversion<br>• Quality checks</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">HTTP/WebSocket</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">HTTP / WebSocket</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">4</div>
-                            <div class="node-content">
-                                <div class="node-title">Time-Series Database</div>
-                                <div class="node-desc">InfluxDB / TimescaleDB</div>
-                                <div class="node-tech">• High write throughput<br>• Retention policies<br>• Aggregations</div>
+                            <div class="node-num">4</div>
+                            <div class="node-body">
+                                <div class="t">Time-Series Database</div>
+                                <div class="d">InfluxDB / TimescaleDB</div>
+                                <div class="x">• High write throughput<br>• Retention policies<br>• Aggregations</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">SQL Query</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">SQL Query</div>
                         </div>
-                        
-                        <div class="flow-node end-node">
-                            <div class="node-number">5</div>
-                            <div class="node-content">
-                                <div class="node-title">Analytics & Dashboards</div>
-                                <div class="node-desc">Real-time monitoring & ML inference</div>
-                                <div class="node-tech">• Live charts<br>• Predictive alerts<br>• KPI calculation</div>
+                        <div class="flow-node end">
+                            <div class="node-num">5</div>
+                            <div class="node-body">
+                                <div class="t">Analytics &amp; Dashboards</div>
+                                <div class="d">Real-time monitoring &amp; ML inference</div>
+                                <div class="x">• Live charts<br>• Predictive alerts<br>• KPI calculation</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- SFTP File Flow Path -->
-                <div class="flow-path" style="margin-top: 60px;">
-                    <h3 class="flow-path-title">📁 Batch File Data Flow (SFTP/NFS)</h3>
+                <!-- SFTP Flow -->
+                <div class="flow-path">
+                    <h3 class="flow-path-title">Batch File Data Flow (SFTP/NFS)</h3>
                     <div class="flow-steps">
-                        <div class="flow-node start-node">
-                            <div class="node-number">1</div>
-                            <div class="node-content">
-                                <div class="node-title">Machine CSV Files</div>
-                                <div class="node-desc">Production logs, Quality data, Recipes</div>
-                                <div class="node-freq">Generation: Per batch/shift</div>
+                        <div class="flow-node start">
+                            <div class="node-num">1</div>
+                            <div class="node-body">
+                                <div class="t">Machine CSV Files</div>
+                                <div class="d">Production logs, Quality data, Recipes</div>
+                                <div class="f">Generation: Per batch/shift</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">File System Watch</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">File System Watch</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">2</div>
-                            <div class="node-content">
-                                <div class="node-title">SyncBridge Agent</div>
-                                <div class="node-desc">File detection & synchronization</div>
-                                <div class="node-tech">• Multi-instance<br>• File integrity check<br>• Resume capability</div>
+                            <div class="node-num">2</div>
+                            <div class="node-body">
+                                <div class="t">SyncBridge Agent</div>
+                                <div class="d">File detection &amp; synchronization</div>
+                                <div class="x">• Multi-instance<br>• File integrity check<br>• Resume capability</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">SFTP / NFS Transfer</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">SFTP / NFS Transfer</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">3</div>
-                            <div class="node-content">
-                                <div class="node-title">Edge Buffer Storage</div>
-                                <div class="node-desc">Temporary staging area</div>
-                                <div class="node-tech">• Deduplication<br>• Checksum verify<br>• Queue management</div>
+                            <div class="node-num">3</div>
+                            <div class="node-body">
+                                <div class="t">Edge Buffer Storage</div>
+                                <div class="d">Temporary staging area</div>
+                                <div class="x">• Deduplication<br>• Checksum verify<br>• Queue management</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">REST API Upload</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">REST API Upload</div>
                         </div>
-                        
                         <div class="flow-node">
-                            <div class="node-number">4</div>
-                            <div class="node-content">
-                                <div class="node-title">Python ETL Pipeline</div>
-                                <div class="node-desc">Data parsing & enrichment</div>
-                                <div class="node-tech">• CSV parsing<br>• Schema mapping<br>• Data cleansing</div>
+                            <div class="node-num">4</div>
+                            <div class="node-body">
+                                <div class="t">Python ETL Pipeline</div>
+                                <div class="d">Data parsing &amp; enrichment</div>
+                                <div class="x">• CSV parsing<br>• Schema mapping<br>• Data cleansing</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector split-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">Dual Write</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Dual Write</div>
                         </div>
-                        
-                        <div class="split-nodes">
+                        <div class="split-grid">
                             <div class="flow-node">
-                                <div class="node-number">5A</div>
-                                <div class="node-content">
-                                    <div class="node-title">Data Lake (S3/MinIO)</div>
-                                    <div class="node-desc">Raw file archive</div>
-                                    <div class="node-tech">• Long-term storage<br>• Versioning<br>• Parquet format</div>
+                                <div class="node-num">5A</div>
+                                <div class="node-body">
+                                    <div class="t">Data Lake (S3/MinIO)</div>
+                                    <div class="d">Raw file archive</div>
+                                    <div class="x">• Long-term storage<br>• Versioning<br>• Parquet format</div>
                                 </div>
                             </div>
-                            
                             <div class="flow-node">
-                                <div class="node-number">5B</div>
-                                <div class="node-content">
-                                    <div class="node-title">PostgreSQL/TSDB</div>
-                                    <div class="node-desc">Structured data store</div>
-                                    <div class="node-tech">• Indexed queries<br>• Relational joins<br>• Fast retrieval</div>
+                                <div class="node-num">5B</div>
+                                <div class="node-body">
+                                    <div class="t">PostgreSQL/TSDB</div>
+                                    <div class="d">Structured data store</div>
+                                    <div class="x">• Indexed queries<br>• Relational joins<br>• Fast retrieval</div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector">
-                            <div class="connector-line"></div>
-                            <div class="connector-label">Data Access Layer</div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Data Access Layer</div>
                         </div>
-                        
-                        <div class="flow-node end-node">
-                            <div class="node-number">6</div>
-                            <div class="node-content">
-                                <div class="node-title">Analytics & Reporting</div>
-                                <div class="node-desc">Historical analysis & ML training</div>
-                                <div class="node-tech">• Batch processing<br>• Model training<br>• BI reports</div>
+                        <div class="flow-node end">
+                            <div class="node-num">6</div>
+                            <div class="node-body">
+                                <div class="t">Analytics &amp; Reporting</div>
+                                <div class="d">Historical analysis &amp; ML training</div>
+                                <div class="x">• Batch processing<br>• Model training<br>• BI reports</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Predictive Analytics Flow -->
-                <div class="flow-path" style="margin-top: 60px;">
-                    <h3 class="flow-path-title">🤖 Predictive Analytics Flow</h3>
-                    <div class="flow-steps horizontal-flow">
+                <!-- Predictive Flow -->
+                <div class="flow-path">
+                    <h3 class="flow-path-title">Predictive Analytics Flow</h3>
+                    <div class="flow-steps h-flow">
                         <div class="flow-node">
-                            <div class="node-content">
-                                <div class="node-title">Data Sources</div>
-                                <div class="node-desc">Time-series + CSV + MES</div>
+                            <div class="node-body">
+                                <div class="t">Data Sources</div>
+                                <div class="d">Time-series + CSV + MES</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector-horiz">→</div>
-                        
+                        <div class="h-arrow">→</div>
                         <div class="flow-node">
-                            <div class="node-content">
-                                <div class="node-title">Feature Engineering</div>
-                                <div class="node-desc">Rolling stats, FFT, Lag features</div>
+                            <div class="node-body">
+                                <div class="t">Feature Engineering</div>
+                                <div class="d">Rolling stats, FFT, Lag features</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector-horiz">→</div>
-                        
+                        <div class="h-arrow">→</div>
                         <div class="flow-node">
-                            <div class="node-content">
-                                <div class="node-title">ML Models</div>
-                                <div class="node-desc">XGBoost, LSTM, Prophet</div>
+                            <div class="node-body">
+                                <div class="t">ML Models</div>
+                                <div class="d">XGBoost, LSTM, Prophet</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector-horiz">→</div>
-                        
+                        <div class="h-arrow">→</div>
                         <div class="flow-node">
-                            <div class="node-content">
-                                <div class="node-title">Predictions</div>
-                                <div class="node-desc">Failures, Quality, Energy</div>
+                            <div class="node-body">
+                                <div class="t">Predictions</div>
+                                <div class="d">Failures, Quality, Energy</div>
                             </div>
                         </div>
-                        
-                        <div class="flow-connector-horiz">→</div>
-                        
+                        <div class="h-arrow">→</div>
                         <div class="flow-node">
-                            <div class="node-content">
-                                <div class="node-title">Actions</div>
-                                <div class="node-desc">Alerts, Work orders, Optimization</div>
+                            <div class="node-body">
+                                <div class="t">Actions</div>
+                                <div class="d">Alerts, Work orders, Optimization</div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Integration Points Diagram -->
-                <div class="integration-matrix" style="margin-top: 60px;">
-                    <h3 style="text-align: center; color: #00ff88; margin-bottom: 30px; font-size: 1.5em;">System Integration Matrix</h3>
-                    <div class="matrix-grid">
-                        <div class="matrix-cell matrix-header"></div>
-                        <div class="matrix-cell matrix-header">PLC/SCADA</div>
-                        <div class="matrix-cell matrix-header">Kepware</div>
-                        <div class="matrix-cell matrix-header">SyncBridge</div>
-                        <div class="matrix-cell matrix-header">Python ETL</div>
-                        <div class="matrix-cell matrix-header">Database</div>
-                        <div class="matrix-cell matrix-header">MES</div>
-                        <div class="matrix-cell matrix-header">Analytics</div>
-                        
-                        <div class="matrix-cell matrix-label">PLC/SCADA</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">OPC UA</div>
-                        <div class="matrix-cell active">File Gen</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        
-                        <div class="matrix-cell matrix-label">Kepware</div>
-                        <div class="matrix-cell active">OPC UA</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">OPC Client</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        
-                        <div class="matrix-cell matrix-label">SyncBridge</div>
-                        <div class="matrix-cell active">SFTP/NFS</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">REST API</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        
-                        <div class="matrix-cell matrix-label">Python ETL</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">Subscribe</div>
-                        <div class="matrix-cell active">REST API</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">SQL/API</div>
-                        <div class="matrix-cell active">REST API</div>
-                        <div class="matrix-cell active">Data Feed</div>
-                        
-                        <div class="matrix-cell matrix-label">Database</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">Write</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">Sync</div>
-                        <div class="matrix-cell active">Query</div>
-                        
-                        <div class="matrix-cell matrix-label">MES</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">REST API</div>
-                        <div class="matrix-cell active">Sync</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">Context</div>
-                        
-                        <div class="matrix-cell matrix-label">Analytics</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell">-</div>
-                        <div class="matrix-cell active">Process</div>
-                        <div class="matrix-cell active">Query</div>
-                        <div class="matrix-cell active">Context</div>
-                        <div class="matrix-cell">-</div>
-                    </div>
+            <!-- INTEGRATION MATRIX -->
+            <section class="arch-section anim-in" id="integration-matrix">
+                <div class="section-label">System Integration Matrix</div>
+                <div class="matrix-grid">
+                    <div class="mx mx-h"></div>
+                    <div class="mx mx-h">PLC/SCADA</div>
+                    <div class="mx mx-h">Kepware</div>
+                    <div class="mx mx-h">SyncBridge</div>
+                    <div class="mx mx-h">Python ETL</div>
+                    <div class="mx mx-h">Database</div>
+                    <div class="mx mx-h">MES</div>
+                    <div class="mx mx-h">Analytics</div>
+
+                    <div class="mx mx-l">PLC/SCADA</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">OPC UA</div>
+                    <div class="mx on">File Gen</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx mx-l">Kepware</div>
+                    <div class="mx on">OPC UA</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">OPC Client</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx mx-l">SyncBridge</div>
+                    <div class="mx on">SFTP/NFS</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">REST API</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx mx-l">Python ETL</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">Subscribe</div>
+                    <div class="mx on">REST API</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">SQL/API</div>
+                    <div class="mx on">REST API</div>
+                    <div class="mx on">Data Feed</div>
+                    <div class="mx mx-l">Database</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">Write</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">Sync</div>
+                    <div class="mx on">Query</div>
+                    <div class="mx mx-l">MES</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">REST API</div>
+                    <div class="mx on">Sync</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">Context</div>
+                    <div class="mx mx-l">Analytics</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx">-</div>
+                    <div class="mx on">Process</div>
+                    <div class="mx on">Query</div>
+                    <div class="mx on">Context</div>
+                    <div class="mx">-</div>
                 </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="site-footer arch-footer">
+            <div class="footer-credit">Created and Developed by Vivin T.S.</div>
+            <div class="footer-links">
+                <a href="tel:+917338937394">+91 7338937394</a>
+                <a href="mailto:vivints.17@gmail.com">vivints.17@gmail.com</a>
+                <a href="https://linkedin.com/in/vivin-t-s-21aa4210a" target="_blank">LinkedIn</a>
             </div>
-        </div>
-
-        <style>
-            .flow-container {
-                width: 100%;
-            }
-
-            .flow-path {
-                background: linear-gradient(135deg, rgba(10, 10, 20, 0.6), rgba(15, 15, 25, 0.6));
-                border-radius: 20px;
-                padding: 40px;
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                backdrop-filter: blur(15px);
-                position: relative;
-                overflow: hidden;
-            }
-
-            .flow-path::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: linear-gradient(90deg, transparent, var(--primary-cyan), var(--primary-green), transparent);
-            }
-
-            .flow-path-title {
-                color: var(--primary-green);
-                font-size: 1.7em;
-                font-weight: 700;
-                margin-bottom: 35px;
-                text-align: center;
-                padding: 18px;
-                background: linear-gradient(135deg, rgba(0, 255, 159, 0.1), rgba(0, 240, 255, 0.1));
-                border-radius: 12px;
-                border: 1px solid rgba(0, 255, 159, 0.2);
-                letter-spacing: 0.3px;
-            }
-
-            .flow-steps {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-            }
-
-            .horizontal-flow {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
-                gap: 15px;
-            }
-
-            .flow-node {
-                background: linear-gradient(135deg, rgba(19, 19, 26, 0.95), rgba(13, 13, 20, 0.95));
-                border: 1px solid rgba(0, 240, 255, 0.3);
-                border-radius: 16px;
-                padding: 28px;
-                position: relative;
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                min-height: 150px;
-                display: flex;
-                gap: 20px;
-                align-items: flex-start;
-                backdrop-filter: blur(10px);
-            }
-
-            .flow-node::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                border-radius: 16px;
-                background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
-                opacity: 0;
-                transition: opacity 0.4s ease;
-                z-index: 0;
-            }
-
-            .flow-node:hover::before {
-                opacity: 0.05;
-            }
-
-            .flow-node:hover {
-                transform: translateY(-6px) scale(1.02);
-                border-color: var(--primary-cyan);
-                box-shadow: 
-                    0 20px 50px rgba(0, 240, 255, 0.25),
-                    0 0 0 1px rgba(0, 240, 255, 0.3),
-                    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-            }
-
-            .start-node {
-                border-color: var(--primary-green);
-                background: linear-gradient(135deg, rgba(0, 255, 159, 0.15), rgba(13, 13, 20, 0.95));
-            }
-
-            .start-node::after {
-                content: 'START';
-                position: absolute;
-                top: 12px;
-                right: 12px;
-                font-size: 0.65em;
-                font-weight: 700;
-                letter-spacing: 1px;
-                color: var(--primary-green);
-                background: rgba(0, 255, 159, 0.2);
-                padding: 4px 10px;
-                border-radius: 20px;
-                border: 1px solid var(--primary-green);
-            }
-
-            .end-node {
-                border-color: var(--accent-pink);
-                background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(13, 13, 20, 0.95));
-            }
-
-            .end-node::after {
-                content: 'END';
-                position: absolute;
-                top: 12px;
-                right: 12px;
-                font-size: 0.65em;
-                font-weight: 700;
-                letter-spacing: 1px;
-                color: var(--accent-pink);
-                background: rgba(236, 72, 153, 0.2);
-                padding: 4px 10px;
-                border-radius: 20px;
-                border: 1px solid var(--accent-pink);
-            }
-
-            .node-number {
-                background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
-                color: #000;
-                font-weight: 700;
-                width: 50px;
-                height: 50px;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.4em;
-                flex-shrink: 0;
-                box-shadow: 
-                    0 8px 24px rgba(0, 240, 255, 0.4),
-                    inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
-                position: relative;
-                z-index: 1;
-            }
-
-            .node-number::after {
-                content: '';
-                position: absolute;
-                inset: -3px;
-                border-radius: 12px;
-                background: inherit;
-                z-index: -1;
-                opacity: 0.4;
-                filter: blur(10px);
-            }
-
-            .node-content {
-                flex: 1;
-                position: relative;
-                z-index: 1;
-            }
-
-            .node-title {
-                font-size: 1.35em;
-                font-weight: 700;
-                color: var(--primary-cyan);
-                margin-bottom: 10px;
-                letter-spacing: 0.2px;
-            }
-
-            .node-desc {
-                color: #b8b8b8;
-                margin-bottom: 12px;
-                line-height: 1.6;
-                font-size: 0.95em;
-            }
-
-            .node-tech, .node-freq {
-                font-size: 0.9em;
-                color: #888;
-                line-height: 1.7;
-            }
-
-            .node-freq {
-                color: var(--primary-green);
-                font-weight: 600;
-                margin-top: 10px;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .flow-connector {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                margin: 20px 0;
-                position: relative;
-            }
-
-            .connector-line {
-                width: 2px;
-                height: 50px;
-                background: linear-gradient(180deg, var(--primary-cyan), var(--primary-green));
-                box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
-                position: relative;
-                animation: flowPulse 2s ease-in-out infinite;
-            }
-
-            @keyframes flowPulse {
-                0%, 100% { opacity: 0.5; }
-                50% { opacity: 1; }
-            }
-
-            .connector-line::after {
-                content: '▼';
-                position: absolute;
-                bottom: -12px;
-                left: 50%;
-                transform: translateX(-50%);
-                color: var(--primary-green);
-                font-size: 1.3em;
-                filter: drop-shadow(0 0 8px var(--primary-green));
-            }
-
-            .connector-label {
-                background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 255, 159, 0.15));
-                border: 1px solid var(--primary-cyan);
-                padding: 10px 24px;
-                border-radius: 25px;
-                font-size: 0.9em;
-                color: var(--primary-cyan);
-                margin-top: 12px;
-                white-space: nowrap;
-                font-weight: 600;
-                font-family: 'JetBrains Mono', monospace;
-                backdrop-filter: blur(10px);
-                box-shadow: 0 4px 16px rgba(0, 240, 255, 0.2);
-            }
-
-            .flow-connector-horiz {
-                color: var(--primary-green);
-                font-size: 2.5em;
-                margin: 0 15px;
-                filter: drop-shadow(0 0 10px var(--primary-green));
-            }
-
-            .split-connector {
-                margin: 25px 0;
-            }
-
-            .split-nodes {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 24px;
-                margin-top: 25px;
-            }
-
-            .integration-matrix {
-                background: linear-gradient(135deg, rgba(10, 10, 20, 0.6), rgba(15, 15, 25, 0.6));
-                border-radius: 20px;
-                padding: 40px;
-                border: 1px solid rgba(0, 240, 255, 0.2);
-                backdrop-filter: blur(15px);
-            }
-
-            .matrix-grid {
-                display: grid;
-                grid-template-columns: 140px repeat(7, 1fr);
-                gap: 3px;
-                background: rgba(0, 240, 255, 0.05);
-                padding: 3px;
-                border-radius: 12px;
-                overflow: hidden;
-            }
-
-            .matrix-cell {
-                background: rgba(19, 19, 26, 0.9);
-                padding: 16px 12px;
-                text-align: center;
-                font-size: 0.9em;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 60px;
-                transition: all 0.3s ease;
-                position: relative;
-            }
-
-            .matrix-header {
-                background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 255, 159, 0.2));
-                font-weight: 700;
-                color: var(--primary-cyan);
-                border-bottom: 2px solid var(--primary-cyan);
-                font-size: 0.85em;
-                letter-spacing: 0.3px;
-            }
-
-            .matrix-label {
-                background: linear-gradient(135deg, rgba(0, 255, 159, 0.2), rgba(0, 240, 255, 0.2));
-                font-weight: 700;
-                color: var(--primary-green);
-                text-align: right;
-                padding-right: 18px;
-                border-right: 2px solid var(--primary-green);
-                font-size: 0.85em;
-                letter-spacing: 0.3px;
-            }
-
-            .matrix-cell.active {
-                background: linear-gradient(135deg, rgba(0, 255, 159, 0.15), rgba(0, 240, 255, 0.15));
-                color: var(--primary-green);
-                font-weight: 600;
-                border: 1px solid rgba(0, 255, 159, 0.3);
-                font-family: 'JetBrains Mono', monospace;
-                cursor: pointer;
-            }
-
-            .matrix-cell.active:hover {
-                background: linear-gradient(135deg, rgba(0, 255, 159, 0.25), rgba(0, 240, 255, 0.25));
-                transform: scale(1.05);
-                box-shadow: 0 4px 16px rgba(0, 255, 159, 0.3);
-                z-index: 10;
-                border-color: var(--primary-cyan);
-            }
-
-            @media (max-width: 1400px) {
-                .matrix-grid {
-                    grid-template-columns: 120px repeat(7, 1fr);
-                    font-size: 0.85em;
-                }
-
-                .matrix-cell {
-                    padding: 12px 8px;
-                    min-height: 50px;
-                }
-            }
-
-            @media (max-width: 1200px) {
-                .split-nodes {
-                    grid-template-columns: 1fr;
-                }
-
-                .horizontal-flow {
-                    flex-direction: column;
-                }
-
-                .flow-connector-horiz {
-                    transform: rotate(90deg);
-                    margin: 15px 0;
-                }
-
-                .matrix-grid {
-                    grid-template-columns: 100px repeat(7, 1fr);
-                    font-size: 0.8em;
-                    overflow-x: auto;
-                }
-            }
-
-            @media (max-width: 768px) {
-                h1 { 
-                    font-size: 2.5em; 
-                }
-                
-                .components-grid { 
-                    grid-template-columns: 1fr; 
-                }
-                
-                .info-grid { 
-                    grid-template-columns: 1fr; 
-                }
-
-                .architecture-diagram,
-                .info-panel {
-                    padding: 30px 20px;
-                }
-
-                .flow-path {
-                    padding: 25px 15px;
-                }
-
-                .matrix-grid {
-                    display: block;
-                    overflow-x: auto;
-                }
-
-                .flow-node {
-                    flex-direction: column;
-                    text-align: center;
-                }
-
-                .node-number {
-                    margin: 0 auto 15px;
-                }
-
-                .legend {
-                    gap: 12px;
-                }
-
-                .legend-item {
-                    font-size: 0.9em;
-                    padding: 8px 16px;
-                }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                *,
-                *::before,
-                *::after {
-                    animation-duration: 0.01ms !important;
-                    animation-iteration-count: 1 !important;
-                    transition-duration: 0.01ms !important;
-                }
-            }
-        </style>
+            <div class="footer-year">&copy; 2026 Vivin T.S. All rights reserved.</div>
+        </footer>
     </div>
+
+    <script>
+        // ===== PARTICLE ANIMATION =====
+        (function () {
+            const canvas = document.getElementById('particleCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+
+            function resize() {
+                w = canvas.width = canvas.parentElement.offsetWidth;
+                h = canvas.height = canvas.parentElement.offsetHeight;
+            }
+
+            function Particle() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.r = Math.random() * 1.5 + 0.3;
+                this.dx = (Math.random() - 0.5) * 0.4;
+                this.dy = (Math.random() - 0.5) * 0.4;
+                this.alpha = Math.random() * 0.5 + 0.1;
+            }
+
+            Particle.prototype.draw = function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(124, 108, 240, ${this.alpha})`;
+                ctx.fill();
+            };
+
+            Particle.prototype.update = function () {
+                this.x += this.dx;
+                this.y += this.dy;
+                if (this.x < 0 || this.x > w) this.dx *= -1;
+                if (this.y < 0 || this.y > h) this.dy *= -1;
+            };
+
+            function init() {
+                resize();
+                particles = [];
+                for (let i = 0; i < 80; i++) particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                particles.forEach(p => { p.update(); p.draw(); });
+
+                // draw lines between close particles
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(124, 108, 240, ${0.08 * (1 - dist / 120)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+
+            init();
+            animate();
+            window.addEventListener('resize', () => { resize(); });
+        })();
+
+        // ===== PAGE SWITCHING =====
+        const introPage = document.getElementById('intro');
+        const archPage = document.getElementById('archPage');
+        const viewBtn = document.getElementById('viewArchBtn');
+        const backBtn = document.getElementById('backToIntro');
+
+        viewBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            introPage.style.display = 'none';
+            archPage.classList.add('active');
+            window.scrollTo(0, 0);
+        });
+
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            archPage.classList.remove('active');
+            introPage.style.display = '';
+            window.scrollTo(0, 0);
+        });
+
+        // ===== MOBILE SIDEBAR =====
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            menuBtn.textContent = sidebar.classList.contains('open') ? '✕' : '☰';
+        });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 900) {
+                    sidebar.classList.remove('open');
+                    menuBtn.textContent = '☰';
+                }
+            });
+        });
+
+        // ===== ACTIVE NAV HIGHLIGHTING =====
+        const navLinks = document.querySelectorAll('.nav-link');
+        const navObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+        document.querySelectorAll('[id]').forEach(section => {
+            if (document.querySelector(`.nav-link[href="#${section.id}"]`)) {
+                navObserver.observe(section);
+            }
+        });
+
+        // ===== SCROLL REVEAL ANIMATIONS =====
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, idx) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), idx * 80);
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.anim-in').forEach(el => revealObserver.observe(el));
+    </script>
 </body>
+
 </html>
