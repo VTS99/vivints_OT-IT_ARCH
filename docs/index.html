@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vivin T.S. — OT/IT Architecture Plan</title>
-    <meta name="description" 
-     content="OT/IT Architecture - PLC to IT Integration with AI & ML by Vivin T.S.">
+    <meta name="description" content="OT/IT Architecture - PLC to IT Integration with AI & ML by Vivin T.S.">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -73,6 +72,13 @@
                 <a href="#flow-diagram" class="nav-link"><span class="dot dot-diagram"></span> Flow Diagram</a>
                 <a href="#integration-matrix" class="nav-link"><span class="dot dot-diagram"></span> Integration
                     Matrix</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Server Architecture</div>
+                <a href="#server-layers" class="nav-link"><span class="dot dot-server"></span> Server Layers</a>
+                <a href="#server-flow" class="nav-link"><span class="dot dot-server"></span> Server Data Flow</a>
+                <a href="#server-stack" class="nav-link"><span class="dot dot-server"></span> Server Tech Stack</a>
             </div>
 
             <a href="#" class="back-link" id="backToIntro">← Back to Intro</a>
@@ -601,6 +607,296 @@
                     <div class="mx on">Query</div>
                     <div class="mx on">Context</div>
                     <div class="mx">-</div>
+                </div>
+            </section>
+
+            <!-- ================================ -->
+            <!--     SERVER ARCHITECTURE          -->
+            <!-- ================================ -->
+            <div class="section-separator anim-in">
+                <div class="sep-line"></div>
+                <div class="sep-title">Server Architecture</div>
+                <div class="sep-line"></div>
+            </div>
+
+            <!-- SERVER LAYER 1 -->
+            <section class="arch-section anim-in" id="server-layers">
+                <div class="section-label">Server Layer 1: Web &amp; Application Server</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Nginx / Reverse Proxy</div>
+                        <div class="card-desc">High-performance reverse proxy handling load balancing, SSL/TLS
+                            termination, and static file serving for all client requests</div>
+                        <div class="tags"><span class="tag">Nginx</span><span class="tag">SSL/TLS</span><span
+                                class="tag">Load Balancer</span><span class="tag">HTTP/2</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">FastAPI / Python Backend</div>
+                        <div class="card-desc">Async Python web framework serving REST API endpoints, WebSocket
+                            connections, and handling authentication/authorization</div>
+                        <div class="tags"><span class="tag">FastAPI</span><span class="tag">Uvicorn</span><span
+                                class="tag">JWT Auth</span><span class="tag">WebSocket</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">React Frontend Server</div>
+                        <div class="card-desc">Single-page application server delivering the dashboard UI with real-time
+                            data rendering and interactive visualization components</div>
+                        <div class="tags"><span class="tag">React</span><span class="tag">Vite</span><span
+                                class="tag">SPA</span><span class="tag">CDN</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">HTTP / gRPC</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- SERVER LAYER 2 -->
+            <section class="arch-section anim-in">
+                <div class="section-label">Server Layer 2: Business Logic &amp; Processing</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">Task Queue &amp; Workers</div>
+                        <div class="card-desc">Distributed task queue for async job processing, scheduled background
+                            tasks, and long-running computation offloading</div>
+                        <div class="tags"><span class="tag">Celery</span><span class="tag">RabbitMQ</span><span
+                                class="tag">Beat Scheduler</span><span class="tag">Workers</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">ML Inference Service</div>
+                        <div class="card-desc">Model serving infrastructure for real-time predictions, batch inference
+                            pipelines, and A/B testing of deployed models</div>
+                        <div class="tags"><span class="tag">TensorFlow Serving</span><span
+                                class="tag">MLflow</span><span class="tag">ONNX</span><span class="tag">REST API</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Notification Service</div>
+                        <div class="card-desc">Centralized alerting engine managing email, SMS, and push notifications
+                            with escalation rules and delivery tracking</div>
+                        <div class="tags"><span class="tag">SMTP</span><span class="tag">Twilio</span><span
+                                class="tag">Firebase</span><span class="tag">Escalation</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flow-divider anim-in">
+                <div class="flow-arrow">↓</div>
+                <div class="flow-label">SQL / Cache / Object Store</div>
+                <div class="flow-arrow">↓</div>
+            </div>
+
+            <!-- SERVER LAYER 3 -->
+            <section class="arch-section anim-in">
+                <div class="section-label">Server Layer 3: Data &amp; Storage Layer</div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-title">PostgreSQL Database</div>
+                        <div class="card-desc">Primary relational database for user accounts, configuration, production
+                            metadata, and application state management</div>
+                        <div class="tags"><span class="tag">PostgreSQL</span><span class="tag">SQL</span><span
+                                class="tag">ACID</span><span class="tag">Migrations</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Redis Cache Layer</div>
+                        <div class="card-desc">In-memory data store for session management, real-time caching, pub/sub
+                            messaging, and rate limiting</div>
+                        <div class="tags"><span class="tag">Redis</span><span class="tag">Sessions</span><span
+                                class="tag">Pub/Sub</span><span class="tag">TTL Cache</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">MinIO / S3 Object Store</div>
+                        <div class="card-desc">Scalable object storage for file uploads, ML model artifacts, production
+                            data backups, and report archive</div>
+                        <div class="tags"><span class="tag">MinIO</span><span class="tag">S3 API</span><span
+                                class="tag">Versioning</span><span class="tag">Lifecycle</span></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">TimescaleDB</div>
+                        <div class="card-desc">Time-series extension on PostgreSQL for high-frequency production data,
+                            aggregated metrics, and trend analysis</div>
+                        <div class="tags"><span class="tag">TimescaleDB</span><span class="tag">Hypertables</span><span
+                                class="tag">Continuous Agg</span><span class="tag">Retention</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SERVER DATA FLOW -->
+            <section class="flow-panel anim-in" id="server-flow">
+                <h2>Server Data Flow</h2>
+                <div class="flow-path">
+                    <h3 class="flow-path-title">Client Request → Response Lifecycle</h3>
+                    <div class="flow-steps">
+                        <div class="flow-node start">
+                            <div class="node-num">1</div>
+                            <div class="node-body">
+                                <div class="t">Client Request</div>
+                                <div class="d">Browser / Mobile / API Consumer</div>
+                                <div class="f">HTTPS / WSS</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">HTTPS / TLS 1.3</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">2</div>
+                            <div class="node-body">
+                                <div class="t">Nginx Reverse Proxy</div>
+                                <div class="d">SSL termination &amp; load balancing</div>
+                                <div class="x">• Rate limiting<br>• Request routing<br>• Static assets</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">Upstream / Unix Socket</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">3</div>
+                            <div class="node-body">
+                                <div class="t">FastAPI Application</div>
+                                <div class="d">Request validation &amp; business logic</div>
+                                <div class="x">• JWT verification<br>• Schema validation<br>• Route handling</div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">ORM / Cache Query</div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="node-num">4</div>
+                            <div class="node-body">
+                                <div class="t">Data Access Layer</div>
+                                <div class="d">SQLAlchemy ORM &amp; Redis cache</div>
+                                <div class="x">• Query optimization<br>• Cache-aside pattern<br>• Connection pooling
+                                </div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">SQL / Redis Protocol</div>
+                        </div>
+                        <div class="split-grid">
+                            <div class="flow-node">
+                                <div class="node-num">5A</div>
+                                <div class="node-body">
+                                    <div class="t">PostgreSQL / TimescaleDB</div>
+                                    <div class="d">Persistent data store</div>
+                                    <div class="x">• Relational queries<br>• Time-series data<br>• Transactions</div>
+                                </div>
+                            </div>
+                            <div class="flow-node">
+                                <div class="node-num">5B</div>
+                                <div class="node-body">
+                                    <div class="t">Redis / MinIO</div>
+                                    <div class="d">Cache &amp; object storage</div>
+                                    <div class="x">• Session data<br>• File retrieval<br>• Pub/Sub events</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="connector">
+                            <div class="conn-line"></div>
+                            <div class="conn-label">JSON Response</div>
+                        </div>
+                        <div class="flow-node end">
+                            <div class="node-num">6</div>
+                            <div class="node-body">
+                                <div class="t">Client Response</div>
+                                <div class="d">Serialized JSON / WebSocket push</div>
+                                <div class="x">• Compressed payload<br>• Cache headers<br>• Real-time updates</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Async Processing Flow -->
+                <div class="flow-path">
+                    <h3 class="flow-path-title">Async Task Processing Flow</h3>
+                    <div class="flow-steps h-flow">
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">API Trigger</div>
+                                <div class="d">User action or scheduled event</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Message Broker</div>
+                                <div class="d">RabbitMQ / Redis Queue</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Celery Worker</div>
+                                <div class="d">Task execution &amp; retry logic</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Result Store</div>
+                                <div class="d">Redis / PostgreSQL</div>
+                            </div>
+                        </div>
+                        <div class="h-arrow">→</div>
+                        <div class="flow-node">
+                            <div class="node-body">
+                                <div class="t">Notification</div>
+                                <div class="d">WebSocket / Email / Push</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SERVER TECH STACK -->
+            <section class="info-panel anim-in" id="server-stack">
+                <h2>Server Technology Stack</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Web Server Stack</h3>
+                        <ul>
+                            <li>Nginx for reverse proxy and load balancing</li>
+                            <li>Gunicorn / Uvicorn ASGI server</li>
+                            <li>Let's Encrypt for automated SSL certificates</li>
+                            <li>HTTP/2 and WebSocket support</li>
+                            <li>Rate limiting and DDoS protection</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Application Framework</h3>
+                        <ul>
+                            <li>FastAPI for async REST &amp; WebSocket APIs</li>
+                            <li>Pydantic for data validation &amp; serialization</li>
+                            <li>SQLAlchemy ORM with async support</li>
+                            <li>Alembic for database migrations</li>
+                            <li>Celery for distributed task processing</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Infrastructure &amp; DevOps</h3>
+                        <ul>
+                            <li>Docker &amp; Docker Compose for containerization</li>
+                            <li>Kubernetes for orchestration and scaling</li>
+                            <li>GitHub Actions for CI/CD pipelines</li>
+                            <li>Terraform for infrastructure as code</li>
+                            <li>Vault for secrets management</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Monitoring &amp; Observability</h3>
+                        <ul>
+                            <li>Prometheus for metrics collection</li>
+                            <li>Grafana for dashboards and alerting</li>
+                            <li>ELK Stack (Elasticsearch, Logstash, Kibana)</li>
+                            <li>Sentry for error tracking and tracing</li>
+                            <li>Jaeger for distributed tracing</li>
+                        </ul>
+                    </div>
                 </div>
             </section>
         </main>
