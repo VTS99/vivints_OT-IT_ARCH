@@ -7,6 +7,9 @@
     <title>Vivin T.S. — OT/IT Architecture Plan</title>
     <meta name="description" content="OT/IT Architecture - PLC to IT Integration with AI & ML by Vivin T.S.">
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -86,6 +89,11 @@
                 <a href="#vision-layers" class="nav-link"><span class="dot dot-vision"></span> Inspection Layers</a>
                 <a href="#vision-flow" class="nav-link"><span class="dot dot-vision"></span> Inspection Flow</a>
                 <a href="#vision-stack" class="nav-link"><span class="dot dot-vision"></span> Inspection Tech Stack</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-label">Site Analytics</div>
+                <a href="#statistics" class="nav-link"><span class="dot dot-stats"></span> Statistics</a>
             </div>
 
             <a href="#" class="back-link" id="backToIntro">← Back to Intro</a>
@@ -1212,6 +1220,109 @@
                     </div>
                 </div>
             </section>
+
+            <!-- ================================ -->
+            <!--     STATISTICS DASHBOARD         -->
+            <!-- ================================ -->
+            <div class="section-separator anim-in">
+                <div class="sep-line"></div>
+                <div class="sep-title">Site Statistics</div>
+                <div class="sep-line"></div>
+            </div>
+
+            <section class="info-panel anim-in" id="statistics">
+                <h2>Statistics Dashboard</h2>
+
+                <!-- Password Gate -->
+                <div class="stats-gate" id="statsGate">
+                    <div class="stats-gate-box" id="statsGateBox">
+                        <span class="gate-lock">🔒</span>
+                        <h3>Protected Area</h3>
+                        <p class="gate-sub">Enter password to view site analytics</p>
+                        <div class="stats-input-group">
+                            <input type="password" id="statsPassword" placeholder="Enter password..."
+                                autocomplete="off">
+                            <button class="stats-unlock-btn" id="statsUnlockBtn">Unlock</button>
+                        </div>
+                        <div class="stats-error" id="statsError"></div>
+                    </div>
+                </div>
+
+                <!-- Dashboard (hidden until password entered) -->
+                <div class="stats-dashboard" id="statsDashboard">
+                    <div class="stats-cards-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Live Visitors</div>
+                            <div class="stat-value"><span class="live-dot"></span><span id="statLive">0</span></div>
+                            <div class="stat-sub">Currently on page</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Visits</div>
+                            <div class="stat-value" id="statTotal">0</div>
+                            <div class="stat-sub">All-time page views</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Today's Visits</div>
+                            <div class="stat-value" id="statToday">0</div>
+                            <div class="stat-sub" id="statTodayDate">—</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Current Session</div>
+                            <div class="stat-value" id="statSession">0:00</div>
+                            <div class="stat-sub">Time on page now</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Avg. Session</div>
+                            <div class="stat-value" id="statAvgSession">0:00</div>
+                            <div class="stat-sub">Average time per visit</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Time</div>
+                            <div class="stat-value" id="statTotalTime">0h</div>
+                            <div class="stat-sub">Cumulative all visitors</div>
+                        </div>
+                    </div>
+
+                    <h3 class="stats-section-title">Access Sources</h3>
+                    <div class="stats-table-wrap">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Source / Referrer</th>
+                                    <th>Visits</th>
+                                    <th>Share</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsSources"></tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="stats-section-title">Recent Visits</h3>
+                    <div class="stats-table-wrap">
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Duration</th>
+                                    <th>Source</th>
+                                    <th>Device</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsVisits"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="stats-firebase-note">
+                        ⚠️ <strong>Firebase Setup Required:</strong> Replace the placeholder Firebase config in the HTML
+                        source with your actual Firebase project credentials. Create a free project at <a
+                            href="https://console.firebase.google.com" target="_blank"
+                            style="color:var(--secondary)">console.firebase.google.com</a>, enable Realtime Database,
+                        and set the rules to allow read/write.
+                    </div>
+
+                    <button class="stats-logout-btn" id="statsLogout">Lock Statistics</button>
+                </div>
+            </section>
         </main>
 
         <!-- Footer -->
@@ -1364,6 +1475,248 @@
         }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
         document.querySelectorAll('.anim-in').forEach(el => revealObserver.observe(el));
+
+        // ===== FIREBASE ANALYTICS ENGINE =====
+        (function () {
+            // ── Firebase Configuration ──
+            // REPLACE these with your actual Firebase project credentials
+            const firebaseConfig = {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_PROJECT.firebaseapp.com",
+                databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+                projectId: "YOUR_PROJECT",
+                storageBucket: "YOUR_PROJECT.appspot.com",
+                messagingSenderId: "000000000000",
+                appId: "YOUR_APP_ID"
+            };
+
+            let db;
+            let sessionStart = Date.now();
+            let sessionKey = null;
+            let sessionTimer = null;
+            let firebaseReady = false;
+
+            try {
+                if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    firebaseReady = firebaseConfig.apiKey !== 'YOUR_API_KEY';
+                }
+            } catch (e) {
+                console.warn('Firebase init skipped:', e.message);
+            }
+
+            // ── Utility functions ──
+            function getDeviceType() {
+                const ua = navigator.userAgent;
+                if (/Mobile|Android|iPhone|iPad/i.test(ua)) return 'Mobile';
+                if (/Tablet|iPad/i.test(ua)) return 'Tablet';
+                return 'Desktop';
+            }
+
+            function getReferrerSource() {
+                const ref = document.referrer;
+                if (!ref) return 'Direct';
+                try {
+                    const url = new URL(ref);
+                    const host = url.hostname.replace('www.', '');
+                    if (host.includes('google')) return 'Google';
+                    if (host.includes('linkedin')) return 'LinkedIn';
+                    if (host.includes('github')) return 'GitHub';
+                    if (host.includes('facebook') || host.includes('fb.')) return 'Facebook';
+                    if (host.includes('twitter') || host.includes('x.com')) return 'Twitter/X';
+                    if (host.includes('instagram')) return 'Instagram';
+                    if (host.includes('youtube')) return 'YouTube';
+                    if (host.includes('t.co')) return 'Twitter/X';
+                    return host;
+                } catch (e) {
+                    return 'Unknown';
+                }
+            }
+
+            function formatDuration(ms) {
+                const totalSec = Math.floor(ms / 1000);
+                if (totalSec < 60) return totalSec + 's';
+                const m = Math.floor(totalSec / 60);
+                const s = totalSec % 60;
+                if (m < 60) return m + ':' + String(s).padStart(2, '0');
+                const h = Math.floor(m / 60);
+                const rm = m % 60;
+                return h + 'h ' + rm + 'm';
+            }
+
+            function formatDateTime(ts) {
+                const d = new Date(ts);
+                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) +
+                    ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function todayKey() {
+                const d = new Date();
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+
+            // ── Record visit to Firebase ──
+            function recordVisit() {
+                if (!firebaseReady || !db) return;
+                const visitData = {
+                    timestamp: Date.now(),
+                    source: getReferrerSource(),
+                    device: getDeviceType(),
+                    screen: window.innerWidth + 'x' + window.innerHeight,
+                    userAgent: navigator.userAgent.substring(0, 120),
+                    duration: 0
+                };
+                const ref = db.ref('visits').push(visitData);
+                sessionKey = ref.key;
+
+                // Track presence (live visitors)
+                const presenceRef = db.ref('presence/' + sessionKey);
+                presenceRef.set(true);
+                presenceRef.onDisconnect().remove();
+
+                // Update duration on page unload
+                window.addEventListener('beforeunload', function () {
+                    if (sessionKey) {
+                        const duration = Date.now() - sessionStart;
+                        db.ref('visits/' + sessionKey + '/duration').set(duration);
+                        presenceRef.remove();
+                    }
+                });
+
+                // Periodically update duration while page is open
+                setInterval(function () {
+                    if (sessionKey) {
+                        db.ref('visits/' + sessionKey + '/duration').set(Date.now() - sessionStart);
+                    }
+                }, 30000);
+            }
+
+            recordVisit();
+
+            // ── Password gate ──
+            const STATS_PASS = 'Vivin123@';
+            const gate = document.getElementById('statsGate');
+            const gateBox = document.getElementById('statsGateBox');
+            const dashboard = document.getElementById('statsDashboard');
+            const passInput = document.getElementById('statsPassword');
+            const unlockBtn = document.getElementById('statsUnlockBtn');
+            const errorEl = document.getElementById('statsError');
+            const logoutBtn = document.getElementById('statsLogout');
+
+            function unlockStats() {
+                if (passInput.value === STATS_PASS) {
+                    gate.style.display = 'none';
+                    dashboard.classList.add('unlocked');
+                    errorEl.textContent = '';
+                    startDashboard();
+                } else {
+                    errorEl.textContent = 'Incorrect password. Try again.';
+                    gateBox.classList.add('shake');
+                    setTimeout(() => gateBox.classList.remove('shake'), 500);
+                    passInput.value = '';
+                    passInput.focus();
+                }
+            }
+
+            unlockBtn.addEventListener('click', unlockStats);
+            passInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') unlockStats();
+            });
+
+            logoutBtn.addEventListener('click', function () {
+                dashboard.classList.remove('unlocked');
+                gate.style.display = '';
+                passInput.value = '';
+                if (sessionTimer) clearInterval(sessionTimer);
+            });
+
+            // ── Dashboard data rendering ──
+            function startDashboard() {
+                updateSessionTimer();
+                sessionTimer = setInterval(updateSessionTimer, 1000);
+
+                if (!firebaseReady || !db) {
+                    document.getElementById('statLive').textContent = '—';
+                    document.getElementById('statTotal').textContent = '—';
+                    document.getElementById('statToday').textContent = '—';
+                    document.getElementById('statAvgSession').textContent = '—';
+                    document.getElementById('statTotalTime').textContent = '—';
+                    document.getElementById('statsSources').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--accent-amber);padding:24px">Firebase not configured. Replace the placeholder config in the HTML source with your Firebase credentials.</td></tr>';
+                    document.getElementById('statsVisits').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--accent-amber);padding:24px">No data available — configure Firebase first.</td></tr>';
+                    return;
+                }
+
+                // Live visitors (real-time listener)
+                db.ref('presence').on('value', function (snap) {
+                    const count = snap.numChildren();
+                    document.getElementById('statLive').textContent = count;
+                });
+
+                // All visits (fetch once then listen)
+                db.ref('visits').orderByChild('timestamp').limitToLast(500).on('value', function (snap) {
+                    const visits = [];
+                    snap.forEach(function (child) {
+                        visits.push(child.val());
+                    });
+                    renderStats(visits);
+                });
+            }
+
+            function updateSessionTimer() {
+                const elapsed = Date.now() - sessionStart;
+                document.getElementById('statSession').textContent = formatDuration(elapsed);
+            }
+
+            function renderStats(visits) {
+                // Total visits
+                document.getElementById('statTotal').textContent = visits.length;
+
+                // Today's visits
+                const today = todayKey();
+                const todayVisits = visits.filter(function (v) {
+                    return todayKey() === (function (ts) {
+                        const d = new Date(ts);
+                        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    })(v.timestamp);
+                });
+                document.getElementById('statToday').textContent = todayVisits.length;
+                document.getElementById('statTodayDate').textContent = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                // Average session duration
+                const durations = visits.map(function (v) { return v.duration || 0; }).filter(function (d) { return d > 0; });
+                const avgDuration = durations.length > 0 ? durations.reduce(function (a, b) { return a + b; }, 0) / durations.length : 0;
+                document.getElementById('statAvgSession').textContent = formatDuration(avgDuration);
+
+                // Total cumulative time
+                const totalTime = durations.reduce(function (a, b) { return a + b; }, 0);
+                document.getElementById('statTotalTime').textContent = formatDuration(totalTime);
+
+                // Access sources
+                const sources = {};
+                visits.forEach(function (v) {
+                    const src = v.source || 'Unknown';
+                    sources[src] = (sources[src] || 0) + 1;
+                });
+                const sortedSources = Object.entries(sources).sort(function (a, b) { return b[1] - a[1]; });
+                const maxSourceCount = sortedSources.length > 0 ? sortedSources[0][1] : 1;
+                let sourcesHTML = '';
+                sortedSources.forEach(function (entry) {
+                    const pct = ((entry[1] / visits.length) * 100).toFixed(1);
+                    const barW = Math.max(4, (entry[1] / maxSourceCount) * 120);
+                    sourcesHTML += '<tr><td>' + entry[0] + '</td><td>' + entry[1] + '</td><td><div class="source-bar"><div class="source-bar-fill" style="width:' + barW + 'px"></div><span class="source-bar-pct">' + pct + '%</span></div></td></tr>';
+                });
+                document.getElementById('statsSources').innerHTML = sourcesHTML || '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-muted)">No data yet</td></tr>';
+
+                // Recent visits (last 50, newest first)
+                const recent = visits.slice().reverse().slice(0, 50);
+                let visitsHTML = '';
+                recent.forEach(function (v) {
+                    visitsHTML += '<tr><td>' + formatDateTime(v.timestamp) + '</td><td>' + formatDuration(v.duration || 0) + '</td><td>' + (v.source || '—') + '</td><td>' + (v.device || '—') + '</td></tr>';
+                });
+                document.getElementById('statsVisits').innerHTML = visitsHTML || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">No visits recorded yet</td></tr>';
+            }
+        })();
     </script>
 </body>
 
